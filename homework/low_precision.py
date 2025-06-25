@@ -76,15 +76,16 @@ class Linear4Bit(torch.nn.Module):
             weight = state_dict[f"{prefix}weight"]  # noqa: F841
             del state_dict[f"{prefix}weight"]
             # TODO: Quantize the weights and store them in self.weight_q4 and self.weight_norm
-            self.weight_q4 = 
-            self.weight_norm = 
-            raise NotImplementedError()
+            self.weight_q4, self.weight_norm = block_quantize_4bit(weight.view(-1))
+    
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
             # TODO: Dequantize and call the layer
             # Hint: You can use torch.nn.functional.linear
-            raise NotImplementedError()
+            weight = block_dequantize_4bit(self.weight_q4, self.weight_norm)
+            return torch.nn.functional.linear(x, weight.view(self._shape), self.bias)
+    
 
 
 class BigNet4Bit(torch.nn.Module):
